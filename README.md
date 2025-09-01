@@ -11,3 +11,30 @@ A real-time AI-powered camera app that allows you to ask natural language questi
 
 ## Installation
 1. Clone the repository:
+   git clone https://github.com/suprithganapa/realtime-ai-camera.git
+   cd realtime-ai-camera
+2. Create and activate a Python environment:
+   python -m venv venv
+   source venv/bin/activate # On Windows: venv\Scripts\activate
+3. Install requirements:
+   pip install -r requirements.txt
+
+
+## Usage
+1. Start the Flask application:
+   python app.py
+
+2. Open your web browser and go to `http://localhost:7860`.
+
+3. Use the webcam interface and enter questions about the live camera feed to receive AI-generated answers.
+
+## Contributing
+Contributions, suggestions, and feedback are welcome!  
+Feel free to open issues or pull requests to improve this project.
+
+## License
+This project is licensed under the MIT License.
+
+---
+
+Made with ❤️ using Python, Flask, and Hugging Face Transformers.
