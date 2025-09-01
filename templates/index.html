@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Real-Time AI Camera VQA</title>
+  <style>
+    body { max-width: 600px; margin: auto; font-family: Arial, sans-serif; }
+    video { width: 100%; border: 1px solid #ccc; }
+    textarea { width: 100%; height: 50px; }
+    #response { padding: 10px; border: 1px solid #ddd; margin-top: 10px; min-height: 50px; white-space: pre-wrap; }
+    button { margin-top: 10px; padding: 10px 20px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h2>Real-Time Camera with Instruction-based AI Response</h2>
+  <video id="video" autoplay playsinline></video>
+  <div>
+    <label for="instruction">Type your instruction or question:</label><br />
+    <textarea id="instruction" placeholder="E.g., What is in the picture?"></textarea>
+  </div>
+  <button id="start">Start Real-Time AI</button>
+
+  <h3>AI Response:</h3>
+  <div id="response"></div>
+
+  <script>
+    const video = document.getElementById('video');
+    const instructionInput = document.getElementById('instruction');
+    const responseDiv = document.getElementById('response');
+    const startButton = document.getElementById('start');
+
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+      } catch (err) {
+        alert('Error accessing camera: ' + err.message);
+      }
+    }
+
+    function captureFrame() {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/jpeg');
+    }
+
+    let intervalId = null;
+
+    async function sendFrameAndInstruction() {
+      const instruction = instructionInput.value.trim();
+      if (!instruction) {
+        responseDiv.textContent = "Please enter an instruction or question.";
+        return;
+      }
+      const imgData = captureFrame();
+
+      try {
+        const resp = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: imgData, instruction: instruction })
+        });
+
+        const json = await resp.json();
+        if (json.response) {
+          responseDiv.textContent = json.response;
+        } else if (json.error) {
+          responseDiv.textContent = 'Error: ' + json.error;
+        }
+      } catch (e) {
+        responseDiv.textContent = 'Error communicating with server: ' + e.message;
+      }
+    }
+
+    startButton.addEventListener('click', () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+        startButton.textContent = "Start Real-Time AI";
+        responseDiv.textContent = "";
+      } else {
+        startCamera();
+        intervalId = setInterval(sendFrameAndInstruction, 1000); // 1 sec interval
+        startButton.textContent = "Stop Real-Time AI";
+      }
+    });
+  </script>
+</body>
+</html>
+
